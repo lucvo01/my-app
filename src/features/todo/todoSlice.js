@@ -7,15 +7,19 @@ const initialState = {
   status: "idle"
 };
 
-let nextTodoId = 0;
+// let nextTodoId = 0;
 
 export const addTodo = createAsyncThunk("counter/addTodo", async (text) => {
   const todo = {
-    id: nextTodoId++,
     text,
     completed: false
   };
   const response = await apiService.post("/todos", todo);
+  return response.data;
+});
+
+export const getTodos = createAsyncThunk("counter/getTodo", async () => {
+  const response = await apiService.get("/todos");
   return response.data;
 });
 
@@ -48,7 +52,24 @@ export const todoSlice = createSlice({
       })
       .addCase(addTodo.fulfilled, (state, action) => {
         state.status = "idle";
-        state.todos.push(action.payload)
+        state.todos.push(action.payload);
+      })
+      .addCase(addTodo.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+      });
+
+    builder
+      .addCase(getTodos.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(getTodos.fulfilled, (state, action) => {
+        state.status = "idle";
+        state.todos = action.payload;
+      })
+      .addCase(getTodos.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
       });
   }
 });
